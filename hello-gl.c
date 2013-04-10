@@ -45,11 +45,24 @@ static GLuint make_buffer(
     return buffer;
 }
 
+static SDL_PixelFormat rgb_pixfmt = {
+    0,                                  // palette
+    24,                                 // bits per pixel
+    3,                                  // bytes per pixel
+    0, 0, 0, 0,                         // RGBA loss
+    16, 8, 0, 0,                        // RGBA shift
+    0xff, 0xff00, 0xff0000, 0,          // RGBA mask
+    0,                                  // colour key
+    0                                   // alpha
+};
+
 static GLuint make_texture(const char *filename)
 {
-    SDL_Surface *surface = SDL_LoadBMP(filename);
-    if (!surface)
+    SDL_Surface *bmp = SDL_LoadBMP(filename);
+    if (!bmp)
         return 0;
+    SDL_Surface *rgb = SDL_ConvertSurface(bmp, &rgb_pixfmt, SDL_SWSURFACE);
+    SDL_FreeSurface(bmp);
 
     GLuint texture;
     glGenTextures(1, &texture);
@@ -61,12 +74,12 @@ static GLuint make_texture(const char *filename)
     glTexImage2D(
         GL_TEXTURE_2D, 0,           /* target, level */
         GL_RGB,                     /* internal format */
-        surface->w, surface->h, 0,  /* width, height, border */
-        GL_BGR, GL_UNSIGNED_BYTE,   /* external format, type */
-        surface->pixels             /* pixels */
+        rgb->w, rgb->h, 0,          /* width, height, border */
+        GL_RGB, GL_UNSIGNED_BYTE,   /* external format, type */
+        rgb->pixels                 /* pixels */
     );
 
-    SDL_FreeSurface(surface);
+    SDL_FreeSurface(rgb);
     return texture;
 }
 
