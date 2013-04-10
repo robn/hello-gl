@@ -1,4 +1,4 @@
-CFLAGS = $(shell sdl-config --cflags)
+CFLAGS = -Wall $(shell sdl-config --cflags)
 LIBS = $(shell sdl-config --libs)
 
 hello-gl: hello-gl.o util.o
