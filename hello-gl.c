@@ -2,9 +2,10 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "SDL.h"
+
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glut.h>
 
 #include "util.h"
 
@@ -200,9 +201,8 @@ static int make_resources(void)
  */
 static void update_fade_factor(void)
 {
-    int milliseconds = glutGet(GLUT_ELAPSED_TIME);
+    int milliseconds = SDL_GetTicks();
     g_resources.fade_factor = sinf((float)milliseconds * 0.001f) * 0.5f + 0.5f;
-    glutPostRedisplay();
 }
 
 static void render(void)
@@ -239,7 +239,8 @@ static void render(void)
     );
 
     glDisableVertexAttribArray(g_resources.attributes.position);
-    glutSwapBuffers();
+
+    SDL_GL_SwapBuffers();
 }
 
 /*
@@ -247,19 +248,51 @@ static void render(void)
  */
 int main(int argc, char** argv)
 {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    glutInitWindowSize(400, 300);
-    glutCreateWindow("Hello World");
-    glutIdleFunc(&update_fade_factor);
-    glutDisplayFunc(&render);
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "Video initialization failed: %s\n", SDL_GetError());
+        exit(-1);
+    }
+
+    const SDL_VideoInfo *info = SDL_GetVideoInfo();
+    switch (info->vfmt->BitsPerPixel) {
+        case 16:
+            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
+            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+            break;
+        case 24:
+        case 32:
+            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+            break;
+        default:
+            fprintf(stderr, "Invalid pixel depth: %d bpp\n", info->vfmt->BitsPerPixel);
+            exit(-1);
+    }
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
+
+    if (!SDL_SetVideoMode(400, 300, info->vfmt->BitsPerPixel, SDL_OPENGL)) {
+        fprintf(stderr, "Failed to set video mode: %s", SDL_GetError());
+        SDL_Quit();
+        exit(-1);
+    }
+
+    SDL_WM_SetCaption("Hello World", "Hello World");
 
     if (!make_resources()) {
         fprintf(stderr, "Failed to load resources\n");
         return 1;
     }
 
-    glutMainLoop();
+    SDL_Event e;
+    while (!SDL_PollEvent(&e) || e.type != SDL_KEYDOWN || e.key.keysym.sym != SDLK_ESCAPE) {
+        update_fade_factor();
+        render();
+    }
+
     return 0;
 }
 
