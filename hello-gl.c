@@ -47,13 +47,11 @@ static GLuint make_buffer(
 
 static GLuint make_texture(const char *filename)
 {
-    int width, height;
-    void *pixels = read_tga(filename, &width, &height);
-    GLuint texture;
-
-    if (!pixels)
+    SDL_Surface *surface = SDL_LoadBMP(filename);
+    if (!surface)
         return 0;
 
+    GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -63,11 +61,12 @@ static GLuint make_texture(const char *filename)
     glTexImage2D(
         GL_TEXTURE_2D, 0,           /* target, level */
         GL_RGB8,                    /* internal format */
-        width, height, 0,           /* width, height, border */
+        surface->w, surface->h, 0,  /* width, height, border */
         GL_BGR, GL_UNSIGNED_BYTE,   /* external format, type */
-        pixels                      /* pixels */
+        surface->pixels             /* pixels */
     );
-    free(pixels);
+
+    SDL_FreeSurface(surface);
     return texture;
 }
 
@@ -159,8 +158,8 @@ static int make_resources(void)
         sizeof(g_element_buffer_data)
     );
 
-    g_resources.textures[0] = make_texture("hello1.tga");
-    g_resources.textures[1] = make_texture("hello2.tga");
+    g_resources.textures[0] = make_texture("hello1.bmp");
+    g_resources.textures[1] = make_texture("hello2.bmp");
 
     if (g_resources.textures[0] == 0 || g_resources.textures[1] == 0)
         return 0;
