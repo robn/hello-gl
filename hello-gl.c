@@ -60,7 +60,7 @@ static GLuint make_texture(const char *filename)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
     glTexImage2D(
         GL_TEXTURE_2D, 0,           /* target, level */
-        GL_RGB8,                    /* internal format */
+        GL_RGB,                     /* internal format */
         surface->w, surface->h, 0,  /* width, height, border */
         GL_BGR, GL_UNSIGNED_BYTE,   /* external format, type */
         surface->pixels             /* pixels */
