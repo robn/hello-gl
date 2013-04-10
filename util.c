@@ -1,7 +1,7 @@
-#include <GL/glew.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <GL/gl.h>
 
 /*
  * Boring, non-OpenGL-related utility functions

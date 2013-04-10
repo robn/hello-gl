@@ -1,8 +1,11 @@
 #include <stdlib.h>
-#include <GL/glew.h>
-#include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
+
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glut.h>
+
 #include "util.h"
 
 /*
@@ -250,12 +253,6 @@ int main(int argc, char** argv)
     glutCreateWindow("Hello World");
     glutIdleFunc(&update_fade_factor);
     glutDisplayFunc(&render);
-
-    glewInit();
-    if (!GLEW_VERSION_2_0) {
-        fprintf(stderr, "OpenGL 2.0 not available\n");
-        return 1;
-    }
 
     if (!make_resources()) {
         fprintf(stderr, "Failed to load resources\n");
