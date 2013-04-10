@@ -70,21 +70,7 @@ static GLuint make_texture(const char *filename)
     return texture;
 }
 
-static void show_info_log(
-    GLuint object,
-    PFNGLGETSHADERIVPROC glGet__iv,
-    PFNGLGETSHADERINFOLOGPROC glGet__InfoLog
-)
-{
-    GLint log_length;
-    char *log;
-
-    glGet__iv(object, GL_INFO_LOG_LENGTH, &log_length);
-    log = malloc(log_length);
-    glGet__InfoLog(object, log_length, NULL, log);
-    fprintf(stderr, "%s", log);
-    free(log);
-}
+static char logbuf[4096];
 
 static GLuint make_shader(GLenum type, const char *filename)
 {
@@ -103,8 +89,9 @@ static GLuint make_shader(GLenum type, const char *filename)
 
     glGetShaderiv(shader, GL_COMPILE_STATUS, &shader_ok);
     if (!shader_ok) {
+        glGetShaderInfoLog(shader, sizeof(logbuf), NULL, logbuf);
         fprintf(stderr, "Failed to compile %s:\n", filename);
-        show_info_log(shader, glGetShaderiv, glGetShaderInfoLog);
+        fputs(logbuf, stderr);
         glDeleteShader(shader);
         return 0;
     }
@@ -123,8 +110,9 @@ static GLuint make_program(GLuint vertex_shader, GLuint fragment_shader)
 
     glGetProgramiv(program, GL_LINK_STATUS, &program_ok);
     if (!program_ok) {
+        glGetProgramInfoLog(program, sizeof(logbuf), NULL, logbuf);
         fprintf(stderr, "Failed to link shader program:\n");
-        show_info_log(program, glGetProgramiv, glGetProgramInfoLog);
+        fputs(logbuf, stderr);
         glDeleteProgram(program);
         return 0;
     }
